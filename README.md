@@ -1,53 +1,70 @@
-# Anchor Day
+# Anchor Day 🌿
 
-Anchor Day is Jackie's editable daily and weekly dashboard. It turns vague expectations into visible, finite choices without making the dashboard a report card.
+A calm daily planner built around how ADHD actually works — not a rigid timetable you have to obey, but a gentle structure you can lean on. Made for you to **use every day and change however you like.**
 
-## What is included
+👉 **Open it here:** _(add your live link once it's published — see "Putting it online" below)_
 
-- **Today:** live “right now” guidance, three priorities, focus timer, editable schedule, brain dump and wins.
-- **Before bed:** a separate editable checklist. Its wording persists; its checkmarks reset each day.
-- **History:** 7-day, 30-day and all-history views showing each day’s planned priorities, completed priorities, other checked items and optional daily note.
-- **Week:** Monday–Friday career lanes, weekend home/food lanes, two workouts that can land on any days, the Friday-to-Sunday food handoff, and daily yes/no packing choices for oats, snacks, shake, yogurt, fruit and lunch plus the dinner plan.
-- **Lists:** job leads and a parking lot for errands, returns, admin and ideas. Job leads are suggestions until Jackie chooses their status.
-- **Household:** editable agreements with Jackie’s part, Denzil’s part, a definition of done and a low-capacity version.
-- **Private food-planner shortcut:** a Google Sheet URL can be saved in the browser without putting the private link in the public GitHub files.
-- **Backup:** download or import the planner’s browser data as JSON.
+---
 
-The initial nightly list is:
+## How to use it, day to day
 
-1. Make sure the sink is empty at night.
-2. Make sure there is no clothing on the bedroom floor.
-3. Make sure there are no plates or utensils in the living room.
+You don't have to do anything special. Just open it in the morning.
 
-Every item and agreement can be edited or removed in the page.
+- **Right Now** (top) — always shows what's happening now and what's next, with a little bar that fills as time passes. You never have to track time in your head.
+- **Today's 3** — pick only three things that matter today. Three, not thirty. Tap the circle to check one off.
+- **Focus sprint** — the hardest part of anything is *starting*. Type one thing, pick 10 / 25 / 45 minutes, hit **Start**, and just stay with it until the timer stops. You don't have to finish — starting is the win.
+- **The shape of today** — your flexible routine. The ⚓ anchors (wake, meals, walk, wind-down) are the few fixed points that hold the day together; everything between them can move.
+- **Brain dump** — a thought pulling at you mid-task? Park it here so it stops nagging, and keep going. Clear it later.
+- **Wins** — counts everything you check off. Nothing ever turns red or scolds you.
+- **"Jump back in at right now"** — fell off the plan? Totally normal. One tap re-centres you on the current moment. No catching up, no guilt.
 
-## Important storage limitation
+**It remembers everything automatically.** Your schedule, your 3, your brain dump — all saved right in your browser on that device. Close it, come back tomorrow, it's all still there.
 
-The site is static and private data is saved in `localStorage`, which means it stays in that specific browser on that specific device. Each calendar day gets its own saved record: “Today’s 3” starts fresh the next day, while the previous day remains visible in **History**. GitHub Pages does **not** sync checkmarks or entries between Jackie’s and Denzil’s phones.
+> One thing to know: it saves *per device and browser*. If you use it on your phone, always open it in the same browser (and the same link) so your stuff is there. Opening it on a different device starts fresh.
 
-Use **Household → Download backup** before clearing browser data or moving devices. A later version could add accounts and live device sync, but that requires a database/authentication service rather than GitHub Pages alone.
+### Make it feel like an app
 
-## Publish with GitHub Pages
+Add it to your phone's home screen so it opens full-screen with one tap:
 
-1. Create a GitHub repository, for example `anchor-day`.
-2. Upload `index.html`, `README.md` and `.nojekyll` to the repository’s `main` branch.
-3. Open **Settings → Pages**.
-4. Under **Build and deployment**, choose **Deploy from a branch**.
-5. Choose `main` and `/ (root)`, then save.
-6. GitHub will provide a URL such as `https://YOUR-USERNAME.github.io/anchor-day/`.
+- **iPhone (Safari):** open the link → tap the Share button → **Add to Home Screen**.
+- **Android (Chrome):** open the link → tap the ⋮ menu → **Add to Home screen**.
 
-On iPhone, open the published link in Safari, tap **Share**, and choose **Add to Home Screen**.
+---
 
-## Everyday use
+## Making it yours (no coding needed)
 
-- Open **Today** in the morning. “Out of bed by 9:30” and “in bed by 1:30” are anchors, not a minute-by-minute test.
-- Choose no more than three priorities.
-- Complete one 30–45 minute primary focus block. The suggested weekly career rhythm is three application blocks and two HubSpot blocks.
-- Pick ClassPass dates only when the schedule becomes clear; the weekly commitment is two workouts, not fixed weekdays.
-- On Friday, Denzil fills in the food needs; Saturday is recipe/list selection; Sunday is groceries plus one meal-prep session.
-- If a new errand appears, note what it replaces. It does not silently stack on top of the plan.
-- “Moved,” “Rest day” and the low-capacity versions are valid outcomes.
+Everything you'll want to change day to day is editable right in the page:
 
-## Privacy
+- **Change the schedule:** tap **Edit schedule** at the bottom of "The shape of today." You can change the time or wording of any block, **+ Add block**, or delete one with the ✕. Tap **Done editing** when you're finished.
+- **Change your priorities:** just type over the three slots.
+- Want a totally clean routine? In edit mode there's a **Restore example day** button to start over.
 
-Do not put private links, medical details or personal notes directly into the public source code. The optional Google Sheet link is intentionally entered only after opening the site and is stored locally in the browser.
+---
+
+## Changing the built-in defaults (optional — a little bit of code)
+
+The in-page editing above saves to *your browser*. If you'd rather change what the planner starts with for *everyone* who opens it (or you just like tinkering), edit `index.html`. You can do it right on GitHub — click the file, then the ✏️ pencil icon. Two easy spots:
+
+- **The default schedule** — search the file for `DEFAULT_BLOCKS`. It's a plain list of times and labels. Add, remove, or reword lines; keep the format the same.
+- **The daily #1 priority** — search for `SEED_PRIORITY`. That's the task that shows up in slot 1 of "Today's 3" each new day. Change the text in the quotes.
+
+Save (GitHub calls it "Commit changes") and, if it's published online, your live link updates in a minute or two.
+
+---
+
+## Putting it online (so you have a link)
+
+The simplest way, no software to install:
+
+1. Create a free account at **github.com** (if you don't have one).
+2. Make a new repository → choose **"uploading an existing file"** → drag in `index.html` and `README.md`.
+3. In the repo, go to **Settings → Pages**, set the source to the `main` branch, and save.
+4. GitHub gives you a link like `https://yourname.github.io/anchor-day/` in a minute or two. That's your planner. Bookmark it and add it to your home screen.
+
+---
+
+## A note on the design
+
+Every piece of this is here for an ADHD-specific reason — time made visible to fight time-blindness, only three priorities to avoid overwhelm, tiny starting steps for the hard stuff, anchors instead of a brittle timetable, and a win counter with a no-shame reset because shame spirals are what actually derail a day. There's a **"Why this planner is built this way"** section at the very bottom of the page that explains it all.
+
+It's yours now. Change anything. 💚
