@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anchor Day — Jackie's planner</title>
+<meta name="description" content="A calm, editable daily and weekly planner for routines, career steps, household handoffs, meals and flexible workouts.">
+<meta name="theme-color" content="#f6f4ee">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+  /* base reset — the page now stands on its own outside the Claude viewer */
+  :root { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+  html { color-scheme: light; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  /* Layout: one calm "today" column — a live Now card up top, then the day's
+     anchors, the 3 that matter, a focus timer and a brain dump. Warm sage +
+     amber-for-now, generous tap targets, nothing shouting. */
+  :root {
+    --bg: #f6f4ee;
+    --surface: #ffffff;
+    --surface-2: #efede4;
+    --ink: #26302b;
+    --ink-soft: #5c665f;
+    --ink-faint: #8a938c;
+    --line: #e3e0d6;
+    --sage: #3f7d6a;
+    --sage-soft: #e4efe9;
+    --now: #d98c2b;
+    --now-soft: #faeed6;
+    --done: #8b9a8f;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(38,48,43,.05), 0 6px 20px rgba(38,48,43,.06);
+    --display: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
+    --body: "Nunito Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161a18;
+      --surface: #1f2522;
+      --surface-2: #272e2a;
+      --ink: #e8ece9;
+      --ink-soft: #a9b2ac;
+      --ink-faint: #7c857f;
+      --line: #313a35;
+      --sage: #6fb79e;
+      --sage-soft: #233530;
+      --now: #e3a24f;
+      --now-soft: #3a2f1c;
+      --done: #6a766e;
+      --shadow: 0 1px 2px rgba(0,0,0,.25), 0 6px 20px rgba(0,0,0,.3);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161a18;
+    --surface: #1f2522;
+    --surface-2: #272e2a;
+    --ink: #e8ece9;
+    --ink-soft: #a9b2ac;
+    --ink-faint: #7c857f;
+    --line: #313a35;
+    --sage: #6fb79e;
+    --sage-soft: #233530;
+    --now: #e3a24f;
+    --now-soft: #3a2f1c;
+    --done: #6a766e;
+    --shadow: 0 1px 2px rgba(0,0,0,.25), 0 6px 20px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding-block: 22px 56px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  h1, h2, h3 { font-family: var(--display); font-weight: 800; margin: 0; text-wrap: balance; }
+  button { font-family: var(--body); cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--sage); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---- header ---- */
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .date { font-size: .82rem; color: var(--ink-soft); font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+  .greeting { font-size: 1.5rem; margin-top: 2px; }
+  .clock {
+    font-family: var(--display); font-weight: 800; font-size: 1.7rem;
+    font-variant-numeric: tabular-nums; color: var(--sage); line-height: 1;
+    text-align: right;
+  }
+  .clock small { display: block; font-size: .7rem; color: var(--ink-faint); font-weight: 700; margin-top: 4px; }
+  .theme-btn {
+    background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line);
+    border-radius: 10px; padding: 6px 9px; font-size: .95rem; line-height: 1; margin-top: 6px;
+  }
+
+  /* ---- cards ---- */
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .card-head h2 { font-size: 1.05rem; }
+  .card-head .hint { font-size: .78rem; color: var(--ink-faint); font-weight: 600; }
+
+  /* ---- NOW card ---- */
+  .now-card { background: var(--now-soft); border: 1px solid color-mix(in srgb, var(--now) 35%, var(--line)); }
+  .now-tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 800; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--now); }
+  .now-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--now); box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 60%, transparent); animation: pulse 2.4s ease-out infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--now) 55%, transparent);} 70%{box-shadow:0 0 0 10px transparent;} 100%{box-shadow:0 0 0 0 transparent;} }
+  .now-label { font-family: var(--display); font-weight: 800; font-size: 1.6rem; margin: 6px 0 2px; line-height: 1.15; }
+  .now-next { font-size: .9rem; color: var(--ink-soft); }
+  .now-next b { color: var(--ink); font-weight: 800; }
+  .progress { height: 8px; background: color-mix(in srgb, var(--now) 18%, transparent); border-radius: 99px; overflow: hidden; margin-top: 14px; }
+  .progress > i { display: block; height: 100%; background: var(--now); border-radius: 99px; transition: width .6s ease; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: .72rem; color: var(--ink-soft); font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+  /* ---- Top 3 ---- */
+  .three { display: flex; flex-direction: column; gap: 10px; }
+  .three-row { display: flex; align-items: center; gap: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px 4px 4px; }
+  .three-num { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--sage-soft); color: var(--sage); font-family: var(--display); font-weight: 800; display: grid; place-items: center; font-size: 1rem; }
+  .three input[type=text] { flex: 1; min-width: 0; border: none; background: transparent; color: var(--ink); font-family: var(--body); font-size: 1rem; padding: 9px 0; }
+  .three input[type=text]::placeholder { color: var(--ink-faint); }
+  .three input[type=text]:focus { outline: none; }
+  .check {
+    flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line);
+    background: var(--surface); display: grid; place-items: center; padding: 0; transition: .15s;
+  }
+  .check svg { width: 16px; height: 16px; stroke: var(--surface); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.4); transition: .18s; }
+  .three-row.done .check, .block.done .check, .task-row.done .check { background: var(--sage); border-color: var(--sage); }
+  .three-row.done .check svg, .block.done .check svg, .task-row.done .check svg { opacity: 1; transform: scale(1); }
+  .three-row.done input[type=text] { color: var(--done); text-decoration: line-through; }
+
+  /* ---- schedule ---- */
+  .blocks { display: flex; flex-direction: column; }
+  .block {
+    display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 10px;
+    padding: 9px 2px; border-top: 1px solid var(--line); position: relative;
+  }
+  .block:first-child { border-top: none; }
+  .block .time { font-family: var(--display); font-weight: 800; font-size: .9rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .block .body { min-width: 0; }
+  .block .label { font-size: .98rem; color: var(--ink); }
+  .block .tag { display: inline-block; font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sage); background: var(--sage-soft); padding: 2px 7px; border-radius: 99px; margin-left: 7px; vertical-align: middle; }
+  .block.current { background: var(--now-soft); border-radius: 12px; border-top-color: transparent; margin: 2px 0; }
+  .block.current + .block { border-top-color: transparent; }
+  .block.current .time, .block.current .label { color: var(--now); font-weight: 800; }
+  .block.current .tag { color: var(--now); background: color-mix(in srgb, var(--now) 16%, transparent); }
+  .block.past:not(.current) .time, .block.past:not(.current) .label { color: var(--ink-faint); }
+  .block.done .label { color: var(--done); text-decoration: line-through; }
+  .block .edit-row { display: flex; gap: 8px; }
+  .block .edit-row input { min-width: 0; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 8px; padding: 6px 8px; font-family: var(--body); font-size: .9rem; }
+  .block .edit-row input.t { width: 72px; flex: none; font-variant-numeric: tabular-nums; }
+  .block .del { border: none; background: transparent; color: var(--ink-faint); font-size: 1.2rem; line-height: 1; padding: 4px 6px; border-radius: 8px; }
+  .block .del:hover { color: #c0564a; background: var(--surface-2); }
+
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-soft); border-radius: 10px; padding: 9px 13px; font-size: .85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { border-color: var(--sage); color: var(--sage); }
+  .btn.primary { background: var(--sage); border-color: var(--sage); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.05); color: #fff; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn.primary{ color:#10231d; } }
+  :root[data-theme="dark"] .btn.primary{ color:#10231d; }
+
+  /* ---- focus timer ---- */
+  .timer-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .timer-time { font-family: var(--display); font-weight: 800; font-size: 3.4rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+  .timer-time.running { color: var(--sage); }
+  .timer-task { width: 100%; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-family: var(--body); font-size: .95rem; margin-top: 6px; text-align: center; }
+  .timer-task::placeholder { color: var(--ink-faint); }
+  .presets { display: flex; gap: 8px; margin: 10px 0 4px; }
+  .preset { border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: 99px; padding: 6px 14px; font-weight: 800; font-size: .85rem; font-family: var(--display); }
+  .preset.active { background: var(--sage); border-color: var(--sage); color: #fff; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .preset.active{ color:#10231d; } }
+  :root[data-theme="dark"] .preset.active{ color:#10231d; }
+  .tiny-note { font-size: .8rem; color: var(--ink-soft); text-align: center; }
+
+  /* ---- brain dump ---- */
+  .dump-form { display: flex; gap: 8px; }
+  .dump-form input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-family: var(--body); font-size: .95rem; }
+  .dump-form input::placeholder { color: var(--ink-faint); }
+  .dump-list { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; }
+  .dump-list li { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border-radius: 9px; padding: 8px 10px; font-size: .92rem; }
+  .dump-list li span { flex: 1; min-width: 0; word-break: break-word; }
+  .dump-list li button { border: none; background: transparent; color: var(--ink-faint); font-size: 1.1rem; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .dump-list li button:hover { color: var(--sage); }
+  .empty { color: var(--ink-faint); font-size: .88rem; text-align: center; padding: 8px 0; }
+
+  /* ---- wins / footer ---- */
+  .wins { display: flex; align-items: center; gap: 12px; background: var(--sage-soft); border: 1px solid color-mix(in srgb, var(--sage) 25%, var(--line)); border-radius: var(--radius); padding: 16px 18px; }
+  .wins .count { font-family: var(--display); font-weight: 800; font-size: 2.2rem; color: var(--sage); line-height: 1; font-variant-numeric: tabular-nums; }
+  .wins .msg { font-size: .92rem; color: var(--ink); }
+  .wins .msg b { font-family: var(--display); }
+
+  details.why { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 2px 18px; }
+  details.why summary { cursor: pointer; padding: 14px 0; font-family: var(--display); font-weight: 800; color: var(--ink); list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  details.why summary::-webkit-details-marker { display: none; }
+  details.why summary::after { content: "+"; color: var(--ink-faint); font-size: 1.4rem; }
+  details.why[open] summary::after { content: "–"; }
+  details.why .why-body { padding-bottom: 16px; color: var(--ink-soft); font-size: .9rem; }
+  details.why h4 { font-family: var(--display); color: var(--ink); margin: 14px 0 3px; font-size: .95rem; }
+  details.why p { margin: 0; }
+
+  .reset-note { text-align: center; font-size: .8rem; color: var(--ink-faint); }
+  .reset-note button { border: none; background: none; color: var(--sage); font-weight: 800; cursor: pointer; text-decoration: underline; font-family: var(--body); font-size: .8rem; }
+
+  /* ---- app views ---- */
+  .view-nav {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 5px; box-shadow: var(--shadow); position: sticky; top: 8px; z-index: 20;
+  }
+  .view-tab {
+    border: none; background: transparent; color: var(--ink-soft); border-radius: 10px;
+    min-height: 42px; padding: 8px 6px; font-weight: 800; font-size: .82rem;
+  }
+  .view-tab.active { background: var(--sage); color: #fff; }
+  .view-panel { display: flex; flex-direction: column; gap: 18px; }
+
+  /* ---- editable checklists ---- */
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+  .task-row {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px;
+    align-items: center; min-height: 48px; padding: 7px 8px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .task-row.done .task-text { color: var(--done); text-decoration: line-through; }
+  .task-text, .field {
+    width: 100%; min-width: 0; border: 1px solid transparent; background: transparent;
+    color: var(--ink); border-radius: 8px; padding: 7px 8px; font: inherit;
+  }
+  .task-text:focus, .field:focus { background: var(--surface); border-color: var(--sage); outline: none; }
+  .remove-btn {
+    border: none; background: transparent; color: var(--ink-faint); font-size: 1.1rem;
+    border-radius: 8px; min-width: 34px; min-height: 34px;
+  }
+  .remove-btn:hover { background: var(--surface); color: #b94c42; }
+  .subnote { margin: 8px 0 0; color: var(--ink-soft); font-size: .82rem; }
+
+  /* ---- week ---- */
+  .week-days { display: flex; flex-direction: column; gap: 9px; }
+  .week-day {
+    display: grid; grid-template-columns: 72px minmax(0, 1.2fr) minmax(0, 1fr) 120px;
+    gap: 9px; align-items: start; border: 1px solid var(--line); background: var(--surface-2);
+    border-radius: 12px; padding: 10px;
+  }
+  .week-day-name { font-family: var(--display); font-weight: 800; color: var(--sage); padding-top: 8px; }
+  .week-day label, .form-label { display: block; color: var(--ink-faint); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 800; }
+  .week-day .field { padding-left: 0; }
+  select.field { border-color: var(--line); background: var(--surface); padding: 8px; }
+  .workout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .workout-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .workout-card h3 { font-size: .92rem; margin-bottom: 8px; }
+  .workout-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .workout-fields .wide { grid-column: 1 / -1; }
+  .toggle-line { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+  .toggle-line label { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: .85rem; font-weight: 700; }
+  .toggle-line input { width: 19px; height: 19px; accent-color: var(--sage); }
+  .food-days { display: flex; flex-direction: column; gap: 10px; }
+  .food-day { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .food-day h3 { color: var(--sage); font-size: .95rem; margin-bottom: 9px; }
+  .food-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .food-choice { display: grid; grid-template-columns: minmax(0, 1fr) 86px; gap: 8px; align-items: center; }
+  .food-choice label { color: var(--ink-soft); font-size: .84rem; font-weight: 700; }
+  .food-choice select { padding: 7px; }
+  .mini-details { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .mini-details summary { cursor: pointer; color: var(--sage); font-weight: 800; font-size: .86rem; }
+  .mini-details .task-list { margin-top: 10px; }
+
+  /* ---- lists / agreements ---- */
+  .entry-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .entry-form .wide { grid-column: 1 / -1; }
+  .entry-form .field { border-color: var(--line); background: var(--surface-2); }
+  .entry-list { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
+  .entry {
+    border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px;
+    padding: 12px; display: grid; gap: 8px;
+  }
+  .entry-top { display: flex; align-items: flex-start; gap: 8px; }
+  .entry-title { flex: 1; min-width: 0; font-weight: 800; }
+  .entry-meta { color: var(--ink-soft); font-size: .82rem; }
+  .entry-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .entry a { color: var(--sage); overflow-wrap: anywhere; }
+  .agreement { border-top: 1px solid var(--line); padding: 12px 0; }
+  .agreement:first-child { border-top: none; padding-top: 0; }
+  .agreement-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  textarea.field { min-height: 74px; resize: vertical; border-color: var(--line); background: var(--surface-2); }
+  .empty-state { color: var(--ink-faint); text-align: center; padding: 12px; font-size: .88rem; }
+  .data-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .link-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .link-row .field { border-color: var(--line); background: var(--surface-2); }
+
+  /* ---- history ---- */
+  .range-tabs { display: flex; gap: 7px; flex-wrap: wrap; }
+  .range-tab { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 7px 13px; font-weight: 800; }
+  .range-tab.active { background: var(--sage); border-color: var(--sage); color: #fff; }
+  .history-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .history-stat { background: var(--sage-soft); border-radius: 11px; padding: 10px; text-align: center; }
+  .history-stat b { display: block; color: var(--sage); font-family: var(--display); font-size: 1.35rem; }
+  .history-stat span { color: var(--ink-soft); font-size: .72rem; font-weight: 700; }
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+  .history-card { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px; }
+  .history-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .history-date { font-family: var(--display); font-weight: 800; }
+  .history-count { color: var(--sage); background: var(--sage-soft); border-radius: 99px; padding: 3px 9px; font-size: .75rem; font-weight: 800; }
+  .history-note { background: var(--now-soft); border-radius: 9px; padding: 9px 10px; margin-top: 10px; color: var(--ink-soft); font-size: .88rem; }
+  .history-section { margin-top: 10px; }
+  .history-section h3 { color: var(--ink-faint); font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+  .history-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .history-items li { color: var(--ink-soft); font-size: .86rem; }
+  .history-items li.completed { color: var(--ink); }
+  .history-items .mark { display: inline-block; width: 20px; color: var(--sage); font-weight: 800; }
+
+  @media (max-width: 560px) {
+    .view-nav { gap: 3px; padding: 4px; }
+    .view-tab { font-size: .69rem; padding-inline: 2px; }
+    .week-day { grid-template-columns: 64px 1fr; }
+    .week-day > :nth-child(4) { grid-column: 2; }
+    .workout-grid, .entry-form, .agreement-grid, .food-choices { grid-template-columns: 1fr; }
+    .entry-form .wide, .workout-fields .wide { grid-column: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="date" id="date">—</div>
+      <h1 class="greeting" id="greeting">Hello</h1>
+    </div>
+    <div>
+      <div class="clock" id="clock">--:--<small id="clock-sub">—</small></div>
+      <button class="theme-btn" id="theme" title="Switch light / dark" aria-label="Switch light or dark">◐</button>
+    </div>
+  </header>
+
+  <nav class="view-nav" aria-label="Planner views">
+    <button class="view-tab active" data-view="today">Today</button>
+    <button class="view-tab" data-view="week">Week</button>
+    <button class="view-tab" data-view="lists">Lists</button>
+    <button class="view-tab" data-view="household">Home</button>
+    <button class="view-tab" data-view="history">History</button>
+  </nav>
+
+  <main class="view-panel" id="view-today">
+
+  <!-- RIGHT NOW -->
+  <section class="card now-card" aria-live="polite">
+    <span class="now-tag"><span class="now-dot"></span> Right now</span>
+    <div class="now-label" id="now-label">—</div>
+    <div class="now-next" id="now-next"></div>
+    <div class="progress" aria-hidden="true"><i id="now-progress" style="width:0%"></i></div>
+    <div class="progress-meta"><span id="now-start">—</span><span id="now-end">—</span></div>
+  </section>
+
+  <!-- TODAY'S 3 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Today's 3</h2>
+      <span class="hint">pick only three</span>
+    </div>
+    <div class="three" id="three"></div>
+  </section>
+
+  <!-- BEFORE BED -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Before bed</h2>
+      <span class="hint">this week's nightly priorities</span>
+    </div>
+    <div class="task-list" id="night-list"></div>
+    <div class="bar">
+      <button class="btn" id="add-night-task">+ Add nightly item</button>
+    </div>
+    <p class="subnote">The wording is editable. Checks reset each day; the list itself stays until you change it.</p>
+  </section>
+
+  <!-- FOCUS TIMER -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Focus sprint</h2>
+      <span class="hint">start the clock, start the task</span>
+    </div>
+    <div class="timer-wrap">
+      <div class="presets" id="presets">
+        <button class="preset" data-min="10">10m</button>
+        <button class="preset active" data-min="25">25m</button>
+        <button class="preset" data-min="45">45m</button>
+      </div>
+      <div class="timer-time" id="timer-time">25:00</div>
+      <input class="timer-task" id="timer-task" placeholder="One thing to do in this sprint…" />
+      <div class="bar" style="justify-content:center">
+        <button class="btn primary" id="timer-toggle">Start</button>
+        <button class="btn" id="timer-reset">Reset</button>
+      </div>
+      <p class="tiny-note">You don't have to finish it — just start it and stay with it until the timer stops.</p>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="card">
+    <div class="card-head">
+      <h2>The shape of today</h2>
+      <span class="hint" id="anchor-hint">⚓ = anchor</span>
+    </div>
+    <div class="blocks" id="blocks"></div>
+    <div class="bar">
+      <button class="btn" id="edit-toggle">Edit schedule</button>
+      <button class="btn" id="add-block" hidden>+ Add block</button>
+      <button class="btn" id="restore-default" hidden>Restore example day</button>
+    </div>
+  </section>
+
+  <!-- BRAIN DUMP -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Brain dump</h2>
+      <span class="hint">park it, don't chase it</span>
+    </div>
+    <form class="dump-form" id="dump-form">
+      <input id="dump-input" placeholder="A thought that's pulling at you…" autocomplete="off" />
+      <button class="btn primary" type="submit">Park</button>
+    </form>
+    <ul class="dump-list" id="dump-list"></ul>
+  </section>
+
+  <!-- WINS -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Note for future you</h2>
+      <span class="hint">optional — saved with today</span>
+    </div>
+    <textarea class="field" id="daily-note" placeholder="What happened, what helped, or anything you want to remember about today…"></textarea>
+  </section>
+
+  <!-- WINS -->
+  <section class="wins">
+    <div class="count" id="wins-count">0</div>
+    <div class="msg" id="wins-msg"><b>No wins yet — and that's fine.</b> Check one small thing off and watch this grow.</div>
+  </section>
+
+  <p class="reset-note">Fell off the plan? That's normal. <button id="start-now">Jump back in at right now →</button></p>
+
+  </main>
+
+  <!-- WEEK -->
+  <main class="view-panel" id="view-week" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>This week</h2>
+        <span class="hint" id="week-label">—</span>
+      </div>
+      <div class="week-days" id="week-days"></div>
+      <p class="subnote">One focus per day is enough. “Moved” and “Rest day” are information, not failures.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Two flexible workouts</h2>
+        <span class="hint" id="workout-count">0 of 2 complete</span>
+      </div>
+      <div class="workout-grid" id="workouts"></div>
+      <p class="subnote">You choose the days as ClassPass options appear. This tracker replaces repeated reminders.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Food and weekly reset</h2>
+        <span class="hint">the handoff, not hidden labor</span>
+      </div>
+      <div class="task-list" id="week-checklist"></div>
+      <div class="bar">
+        <button class="btn" id="open-food-sheet" hidden>Open food planner ↗</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Lunch bag and dinner choices</h2>
+        <span class="hint">Denzil fills this out by Friday at 8pm</span>
+      </div>
+      <div class="food-days" id="food-plan"></div>
+      <p class="subnote">“No” is useful information. Jackie does not have to guess what should be packed or what dinner is expected.</p>
+      <details class="mini-details">
+        <summary>Edit packing items</summary>
+        <div class="task-list" id="food-items-editor"></div>
+        <div class="bar"><button class="btn" id="add-food-item">+ Add packing item</button></div>
+      </details>
+    </section>
+  </main>
+
+  <!-- LISTS -->
+  <main class="view-panel" id="view-lists" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Job leads</h2>
+        <span class="hint">suggestions, not assignments</span>
+      </div>
+      <form class="entry-form" id="job-form">
+        <input class="field" id="job-role" placeholder="Role" required>
+        <input class="field" id="job-employer" placeholder="Employer">
+        <input class="field wide" id="job-link" type="url" placeholder="Link (optional)">
+        <input class="field wide" id="job-fit" placeholder="Why it may fit — one sentence">
+        <button class="btn primary wide" type="submit">Add job lead</button>
+      </form>
+      <p class="subnote">Denzil can park a lead here. You review it during a career block and choose Apply, Later, or Pass.</p>
+      <div class="entry-list" id="job-list"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Parking lot</h2>
+        <span class="hint">returns, errands, admin, ideas</span>
+      </div>
+      <form class="entry-form" id="parking-form">
+        <select class="field" id="parking-area">
+          <option>Errand</option><option>Return</option><option>Admin</option><option>Home</option><option>Career</option><option>Appointment</option><option>Maybe</option>
+        </select>
+        <input class="field" id="parking-task" placeholder="Task or idea" required>
+        <input class="field wide" id="parking-replace" placeholder="If this happens this week, what does it replace?">
+        <button class="btn primary wide" type="submit">Add to parking lot</button>
+      </form>
+      <p class="subnote">Adding something here does not mean it has to happen this week.</p>
+      <div class="entry-list" id="parking-list"></div>
+    </section>
+  </main>
+
+  <!-- HOUSEHOLD -->
+  <main class="view-panel" id="view-household" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Household agreements</h2>
+        <span class="hint">for the current residency rotation</span>
+      </div>
+      <div id="agreements"></div>
+      <div class="bar"><button class="btn" id="add-agreement">+ Add agreement</button></div>
+      <p class="subnote">These are editable definitions, not proof that one person must notice and do everything.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Private link and backup</h2>
+        <span class="hint">saved only in this browser</span>
+      </div>
+      <label class="form-label" for="food-sheet-url">Google Sheet link (optional)</label>
+      <div class="link-row">
+        <input class="field" id="food-sheet-url" type="url" placeholder="Paste your private food-planning Sheet link">
+        <button class="btn" id="save-food-link">Save</button>
+      </div>
+      <p class="subnote">The site does not publish this link in GitHub; it stays in this browser's storage.</p>
+      <div class="data-tools" style="margin-top:14px">
+        <button class="btn" id="export-data">Download backup</button>
+        <label class="btn" for="import-data">Import backup</label>
+        <input id="import-data" type="file" accept="application/json" hidden>
+      </div>
+      <p class="subnote">GitHub Pages cannot automatically sync checkmarks between two phones. Export/import is included for backup or moving devices.</p>
+    </section>
+  </main>
+
+  <!-- HISTORY -->
+  <main class="view-panel" id="view-history" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Your history</h2>
+        <span class="hint">evidence, not a scorecard</span>
+      </div>
+      <div class="range-tabs" id="history-ranges">
+        <button class="range-tab" data-range="7">Last 7 days</button>
+        <button class="range-tab active" data-range="30">Last 30 days</button>
+        <button class="range-tab" data-range="all">All</button>
+      </div>
+      <div class="history-stats" id="history-stats"></div>
+      <p class="subnote">This includes what you planned, what you checked off, and any note you left. Blank or low-capacity days are not failures.</p>
+    </section>
+    <div class="history-list" id="history-list"></div>
+  </main>
+
+  <details class="why">
+    <summary>Why this planner is built this way</summary>
+    <div class="why-body">
+      <p>Every part of this is here for an ADHD-specific reason. You don't need to read this to use it.</p>
+      <h4>It shows the time, loudly</h4>
+      <p>ADHD comes with "time blindness" — time feels like now or not-now. The live clock, the Right Now card and the progress bar make time something you can <em>see</em> instead of having to track in your head.</p>
+      <h4>Only three things</h4>
+      <p>Long to-do lists cause overwhelm and shutdown. Choosing a small number of priorities lowers the barrier to starting and makes "done" reachable.</p>
+      <h4>Anchors, not a rigid timetable</h4>
+      <p>A few fixed points (⚓) — wake, meals, wind-down — hold the day together. Everything between them can flex. Habits are easiest to keep when stacked onto things you already do.</p>
+      <h4>The focus sprint</h4>
+      <p>Starting is the hardest part. A short, visible timer turns a vague task into "just do it until the clock stops," which is far easier to begin. Doing it alongside someone ("body doubling") helps even more.</p>
+      <h4>The brain dump</h4>
+      <p>Working memory is leaky. Parking a stray thought on paper (or here) stops it from hijacking what you're doing, without losing it.</p>
+      <h4>Wins, not guilt</h4>
+      <p>A missed block isn't failure and nothing turns angry-red. The win counter and the "jump back in" button are built to break the shame spiral — the thing that actually derails ADHD days — and get you re-started gently.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- storage helpers (degrade gracefully) ---------- */
+  var mem = {};
+  function load(key, fallback) {
+    try { var v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
+    catch (e) { return key in mem ? mem[key] : fallback; }
+  }
+  function save(key, val) {
+    mem[key] = val;
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  /* ---------- default schedule (anchors marked) ---------- */
+  var DEFAULT_BLOCKS = [
+    { t: "09:30", label: "Out of bed — curtains open, drink something, don't return to bed", anchor: true },
+    { t: "09:35", label: "Feed cats, check water and scoop litter", anchor: true },
+    { t: "10:00", label: "Breakfast and get dressed" },
+    { t: "11:00", label: "Today's primary focus — 30 to 45 minutes, then stop", anchor: true },
+    { t: "12:00", label: "Lunch and decompression", anchor: true },
+    { t: "13:00", label: "Flexible space — appointment, one errand, admin or actual free time" },
+    { t: "18:30", label: "Dinner — meal prep, leftovers or something easy", anchor: true },
+    { t: "20:00", label: "Kitchen close — food away, sink usable, table clear" },
+    { t: "21:00", label: "Evening — relax, hobby or time together" },
+    { t: "00:30", label: "Start winding down", anchor: true },
+    { t: "01:15", label: "Check the short before-bed list" },
+    { t: "01:30", label: "In bed — you do not have to be asleep yet", anchor: true }
+  ];
+
+  /* ---------- state ---------- */
+  var blocks = load("anchor_blocks", null);
+  if (!blocks || !blocks.length) { blocks = DEFAULT_BLOCKS.slice(); }
+  var SEED_PRIORITY = "Do today's 30–45 minute focus block";
+  function freshDayState() { return { done: {}, three: [{ text: SEED_PRIORITY }, {}, {}], nightDone: {}, doneLabels: {}, nightLabels: {}, note: "" }; }
+  function normalizeDayState(state) {
+    state = state || freshDayState();
+    if (!state.three) state.three = [{}, {}, {}];
+    if (!state.done) state.done = {};
+    if (!state.nightDone) state.nightDone = {};
+    if (!state.doneLabels) state.doneLabels = {};
+    if (!state.nightLabels) state.nightLabels = {};
+    if (typeof state.note !== "string") state.note = "";
+    return state;
+  }
+  var activeDayKey = todayKey();
+  var dayState = normalizeDayState(load("anchor_day_" + activeDayKey, freshDayState()));
+  var dump = load("anchor_dump", []);
+  var editing = false;
+
+  var NIGHT_DEFAULTS = [
+    { id: "night-sink", text: "Make sure the sink is empty at night" },
+    { id: "night-clothes", text: "Make sure there is no clothing on the bedroom floor" },
+    { id: "night-living-dishes", text: "Make sure there are no plates or utensils in the living room" }
+  ];
+  var nightTasks = load("anchor_night_tasks", NIGHT_DEFAULTS);
+
+  function mondayKey() {
+    var d = new Date();
+    var offset = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - offset);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  var WEEK_DEFAULTS = [
+    { day: "Monday", focus: "Adjunct application 1", home: "Daily baseline", outcome: "—", note: "" },
+    { day: "Tuesday", focus: "HubSpot — 30 to 45 minutes", home: "Daily baseline; optional one errand", outcome: "—", note: "" },
+    { day: "Wednesday", focus: "Adjunct application 2", home: "Daily baseline", outcome: "—", note: "" },
+    { day: "Thursday", focus: "HubSpot — 30 to 45 minutes", home: "Daily baseline; optional admin", outcome: "—", note: "" },
+    { day: "Friday", focus: "Adjunct application 3", home: "Trash check; food choices due by 8pm", outcome: "—", note: "" },
+    { day: "Saturday", focus: "No required career block", home: "Laundry OR one named 30-minute zone; choose recipes", outcome: "—", note: "" },
+    { day: "Sunday", focus: "Rest / no career block", home: "Groceries and one 60–90 minute meal-prep session", outcome: "—", note: "" }
+  ];
+  var FOOD_ITEM_DEFAULTS = [
+    { key: "oats", label: "Overnight oats" },
+    { key: "pbCups", label: "2 chocolate PB cups" },
+    { key: "shake", label: "Protein shake" },
+    { key: "chips", label: "Elote chips" },
+    { key: "yogurt", label: "180g yogurt + 12g honey" },
+    { key: "plumcot", label: "Cut-up plumcot" },
+    { key: "lunch", label: "Lunch" }
+  ];
+  var foodItems = load("anchor_food_items", FOOD_ITEM_DEFAULTS);
+  function defaultFoodDays() {
+    return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(function (day) {
+      return { day: day, choices: {}, dinner: "—", note: "" };
+    });
+  }
+  var weekState = load("anchor_week_" + mondayKey(), null) || {
+    days: JSON.parse(JSON.stringify(WEEK_DEFAULTS)),
+    workouts: [
+      { date: "", activity: "", booked: false, done: false },
+      { date: "", activity: "", booked: false, done: false }
+    ],
+    checklist: [
+      { id: "food-friday", text: "Friday by 8pm — Denzil completes the food plan", done: false },
+      { id: "recipes-saturday", text: "Saturday — Jackie chooses recipes and makes the grocery list", done: false },
+      { id: "groceries-sunday", text: "Sunday — buy groceries", done: false },
+      { id: "prep-sunday", text: "Sunday — one 60–90 minute meal-prep session", done: false }
+    ],
+    foodDays: defaultFoodDays()
+  };
+  var jobLeads = load("anchor_job_leads", []);
+  var parking = load("anchor_parking", []);
+  var AGREEMENT_DEFAULTS = [
+    { system: "Weekly food choices", jackie: "Use the completed plan to choose recipes, shop and prep.", denzil: "By Friday at 8pm, mark what you want for lunches/dinners and any calorie, macro or packing needs. ‘Unsure’ is allowed.", minimum: "Every day has an answer before shopping starts.", low: "Use freezer food, leftovers or an easy backup meal." },
+    { system: "Lunch-bag return", jackie: "Keep dishwasher space available when practical.", denzil: "Discard scraps and wrappers at the hospital. At home, refrigerate uneaten cold food and put reusable containers in the dishwasher on a normal night.", minimum: "No yogurt or other cold food left on the counter.", low: "Cold food in fridge; bag beside sink. Containers can wait." },
+    { system: "Cats and litter", jackie: "Feed cats, check water and scoop litter daily.", denzil: "Flag supply needs early when you notice them.", minimum: "Food, water and daily scoop.", low: "Deep cleaning waits for a specifically chosen weekly zone." },
+    { system: "Kitchen close", jackie: "Spend up to 20–30 minutes putting food away and making the sink usable.", denzil: "Put dishes directly into an available dishwasher when you have capacity.", minimum: "Food safe, sink usable, dishes/trash off the tabletop.", low: "Do food safety and one clear surface; stop there." },
+    { system: "Bedroom clothing", jackie: "Put your clothing in its home or the designated basket.", denzil: "Handle your own clothing the same way.", minimum: "No loose clothing on the bedroom floor.", low: "Everything goes into one designated basket." },
+    { system: "Laundry", jackie: "Do your laundry and occasionally an agreed shared/Denzil load.", denzil: "Normally do your own laundry.", minimum: "Clean clothes can live in a basket; folding is separate.", low: "Wash essentials only." },
+    { system: "Weekly heavier cleaning", jackie: "Choose laundry OR one named 30-minute cleaning zone.", denzil: "Name a concern early and specifically instead of waiting until anxiety builds.", minimum: "One selected zone, stopped at 30 minutes.", low: "Move it; do not double the next day." },
+    { system: "Unexpected errands", jackie: "Choose when a requested errand can fit.", denzil: "Ask specifically and acknowledge the time/effort involved.", minimum: "A new errand replaces or moves another task; it is not silently added.", low: "Park it in the list for later." },
+    { system: "Talking about the day", jackie: "Leave one short dashboard note when practical.", denzil: "Check the tracker first, then ask how the day felt—not for an accounting of every hour.", minimum: "Concerns are specific and raised at the weekly check-in when possible.", low: "Say ‘low-capacity day’ and return to it later." }
+  ];
+  var agreements = load("anchor_agreements", AGREEMENT_DEFAULTS);
+  var foodSheetUrl = load("anchor_food_sheet_url", "");
+  var historyRange = load("anchor_history_range", "30");
+
+  function saveBlocks() { save("anchor_blocks", blocks); }
+  function saveDay() { save("anchor_day_" + activeDayKey, dayState); }
+  function saveDump() { save("anchor_dump", dump); }
+  function saveNight() { save("anchor_night_tasks", nightTasks); }
+  function saveWeek() { save("anchor_week_" + mondayKey(), weekState); }
+  function saveFoodItems() { save("anchor_food_items", foodItems); }
+  function saveJobs() { save("anchor_job_leads", jobLeads); }
+  function saveParking() { save("anchor_parking", parking); }
+  function saveAgreements() { save("anchor_agreements", agreements); }
+  function checkDayRollover() {
+    var newKey = todayKey();
+    if (newKey === activeDayKey) return false;
+    activeDayKey = newKey;
+    dayState = normalizeDayState(load("anchor_day_" + activeDayKey, freshDayState()));
+    saveDay(); renderAll(); return true;
+  }
+
+  /* ---------- helpers ---------- */
+  function mins(t) { var p = (t || "0:0").split(":"); return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0); }
+  function timelineMins(t) { var m = mins(t); return m < 4 * 60 ? m + 24 * 60 : m; }
+  function currentTimelineMins() { var d = new Date(), m = d.getHours() * 60 + d.getMinutes(); return m < 4 * 60 ? m + 24 * 60 : m; }
+  function fmt12(t) {
+    var m = mins(t), h = Math.floor(m / 60), mm = m % 60;
+    var ap = h >= 12 ? "pm" : "am", h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ":" + String(mm).padStart(2, "0") + ap;
+  }
+  function blockId(b, i) { return b.t + "|" + i; }
+  function sortBlocks() { blocks.sort(function (a, b) { return timelineMins(a.t) - timelineMins(b.t); }); }
+
+  /* ---------- rendering ---------- */
+  function currentIndex() {
+    var now = currentTimelineMins();
+    var idx = -1;
+    for (var i = 0; i < blocks.length; i++) { if (timelineMins(blocks[i].t) <= now) idx = i; else break; }
+    return idx;
+  }
+
+  function renderNow() {
+    var now = currentTimelineMins();
+    var idx = currentIndex();
+    var labelEl = document.getElementById("now-label");
+    var nextEl = document.getElementById("now-next");
+    var prog = document.getElementById("now-progress");
+    var sEl = document.getElementById("now-start"), eEl = document.getElementById("now-end");
+
+    if (!blocks.length) { labelEl.textContent = "Add a block to begin"; nextEl.textContent = ""; prog.style.width = "0%"; sEl.textContent = eEl.textContent = "—"; return; }
+
+    if (idx === -1) {
+      var first = blocks[0];
+      labelEl.textContent = "Not started yet";
+      nextEl.innerHTML = "First up at <b>" + fmt12(first.t) + "</b> — " + escapeHtml(first.label);
+      prog.style.width = "0%"; sEl.textContent = "—"; eEl.textContent = fmt12(first.t);
+      return;
+    }
+
+    var cur = blocks[idx];
+    var next = blocks[idx + 1];
+    labelEl.textContent = cur.label;
+    if (next) {
+      nextEl.innerHTML = "Next: <b>" + fmt12(next.t) + "</b> — " + escapeHtml(next.label);
+      var start = timelineMins(cur.t), end = timelineMins(next.t);
+      var pct = end > start ? Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100)) : 0;
+      prog.style.width = pct + "%";
+      sEl.textContent = fmt12(cur.t); eEl.textContent = fmt12(next.t);
+    } else {
+      nextEl.innerHTML = "Last block of the day. Wind down when you're ready.";
+      prog.style.width = "100%"; sEl.textContent = fmt12(cur.t); eEl.textContent = "—";
+    }
+  }
+
+  function renderBlocks() {
+    sortBlocks();
+    var wrap = document.getElementById("blocks");
+    wrap.innerHTML = "";
+    var curIdx = currentIndex();
+    blocks.forEach(function (b, i) {
+      var id = blockId(b, i);
+      var done = !!dayState.done[id];
+      var row = document.createElement("div");
+      row.className = "block" + (i === curIdx ? " current" : "") + (i < curIdx ? " past" : "") + (done ? " done" : "");
+
+      if (editing) {
+        row.innerHTML =
+          '<div class="edit-row" style="grid-column:1/3">' +
+            '<input class="t" type="time" value="' + b.t + '" aria-label="Time">' +
+            '<input class="l" type="text" value="' + escapeAttr(b.label) + '" aria-label="What happens">' +
+          '</div>' +
+          '<button class="del" title="Remove" aria-label="Remove block">✕</button>';
+        row.querySelector(".t").addEventListener("change", function (e) { b.t = e.target.value || b.t; saveBlocks(); });
+        row.querySelector(".l").addEventListener("input", function (e) { b.label = e.target.value; saveBlocks(); });
+        row.querySelector(".del").addEventListener("click", function () { blocks.splice(i, 1); saveBlocks(); renderAll(); });
+      } else {
+        var time = document.createElement("div"); time.className = "time"; time.textContent = fmt12(b.t);
+        var body = document.createElement("div"); body.className = "body";
+        var lab = document.createElement("span"); lab.className = "label"; lab.textContent = b.label;
+        body.appendChild(lab);
+        if (b.anchor) { var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = "⚓ anchor"; body.appendChild(tag); }
+        var btn = document.createElement("button");
+        btn.className = "check"; btn.setAttribute("aria-label", "Mark done"); btn.setAttribute("aria-pressed", done);
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>';
+        btn.addEventListener("click", function () {
+          if (dayState.done[id]) { delete dayState.done[id]; delete dayState.doneLabels[id]; }
+          else { dayState.done[id] = true; dayState.doneLabels[id] = b.label; }
+          saveDay(); renderAll();
+        });
+        row.appendChild(time); row.appendChild(body); row.appendChild(btn);
+      }
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderThree() {
+    var wrap = document.getElementById("three");
+    wrap.innerHTML = "";
+    for (var i = 0; i < 3; i++) {
+      (function (i) {
+        var item = dayState.three[i] || {};
+        var row = document.createElement("div");
+        row.className = "three-row" + (item.done ? " done" : "");
+        var num = document.createElement("div"); num.className = "three-num"; num.textContent = i + 1;
+        var input = document.createElement("input");
+        input.type = "text"; input.value = item.text || ""; input.placeholder = i === 0 ? "The one that matters most…" : "Another priority (optional)";
+        input.setAttribute("aria-label", "Priority " + (i + 1));
+        input.addEventListener("input", function (e) { dayState.three[i] = dayState.three[i] || {}; dayState.three[i].text = e.target.value; saveDay(); });
+        var btn = document.createElement("button");
+        btn.className = "check"; btn.setAttribute("aria-label", "Mark priority done"); btn.setAttribute("aria-pressed", !!item.done);
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>';
+        btn.addEventListener("click", function () {
+          dayState.three[i] = dayState.three[i] || {};
+          dayState.three[i].done = !dayState.three[i].done; saveDay(); renderThree(); renderWins();
+        });
+        row.appendChild(num); row.appendChild(input); row.appendChild(btn);
+        wrap.appendChild(row);
+      })(i);
+    }
+  }
+
+  function renderDump() {
+    var ul = document.getElementById("dump-list");
+    ul.innerHTML = "";
+    if (!dump.length) { ul.innerHTML = '<li class="empty" style="background:none">Nothing parked. When a thought tugs at you, drop it here and keep going.</li>'; return; }
+    dump.forEach(function (text, i) {
+      var li = document.createElement("li");
+      var span = document.createElement("span"); span.textContent = text;
+      var del = document.createElement("button"); del.textContent = "✓"; del.title = "Clear this"; del.setAttribute("aria-label", "Clear");
+      del.addEventListener("click", function () { dump.splice(i, 1); saveDump(); renderDump(); });
+      li.appendChild(span); li.appendChild(del); ul.appendChild(li);
+    });
+  }
+
+  function renderWins() {
+    var count = 0;
+    dayState.three.forEach(function (t) { if (t && t.done) count++; });
+    Object.keys(dayState.done).forEach(function (k) { if (dayState.done[k]) count++; });
+    Object.keys(dayState.nightDone || {}).forEach(function (k) { if (dayState.nightDone[k]) count++; });
+    document.getElementById("wins-count").textContent = count;
+    var msg = document.getElementById("wins-msg");
+    if (count === 0) msg.innerHTML = "<b>No wins yet — and that's fine.</b> Check one small thing off and watch this grow.";
+    else if (count < 3) msg.innerHTML = "<b>" + count + " down.</b> Every check counts. Keep the momentum gentle.";
+    else if (count < 7) msg.innerHTML = "<b>" + count + " wins today.</b> You're moving — that's the whole game.";
+    else msg.innerHTML = "<b>" + count + " wins — brilliant day.</b> Be proud of this.";
+  }
+
+  function renderClock() {
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes();
+    var ap = h >= 12 ? "PM" : "AM", h12 = h % 12; if (h12 === 0) h12 = 12;
+    document.getElementById("clock").firstChild.textContent = h12 + ":" + String(m).padStart(2, "0");
+    var hh = h < 12 ? "Good morning" : (h < 17 ? "Good afternoon" : "Good evening");
+    document.getElementById("greeting").textContent = hh;
+    document.getElementById("clock-sub").textContent = ap;
+  }
+
+  function renderDate() {
+    var d = new Date();
+    document.getElementById("date").textContent = d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  }
+
+  function makeCheck(done, label, onClick) {
+    var btn = document.createElement("button");
+    btn.className = "check";
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("aria-pressed", !!done);
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>';
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function renderNightly() {
+    var wrap = document.getElementById("night-list");
+    wrap.innerHTML = "";
+    nightTasks.forEach(function (task, i) {
+      var done = !!dayState.nightDone[task.id];
+      var row = document.createElement("div");
+      row.className = "task-row" + (done ? " done" : "");
+      var check = makeCheck(done, "Mark nightly item done", function () {
+        if (dayState.nightDone[task.id]) { delete dayState.nightDone[task.id]; delete dayState.nightLabels[task.id]; }
+        else { dayState.nightDone[task.id] = true; dayState.nightLabels[task.id] = task.text; }
+        saveDay(); renderNightly(); renderWins();
+      });
+      var input = document.createElement("input");
+      input.className = "task-text"; input.value = task.text; input.setAttribute("aria-label", "Nightly item");
+      input.addEventListener("input", function (e) { task.text = e.target.value; saveNight(); });
+      var del = document.createElement("button");
+      del.className = "remove-btn"; del.textContent = "✕"; del.setAttribute("aria-label", "Remove nightly item");
+      del.addEventListener("click", function () {
+        nightTasks.splice(i, 1); delete dayState.nightDone[task.id]; delete dayState.nightLabels[task.id]; saveNight(); saveDay(); renderNightly(); renderWins();
+      });
+      row.appendChild(check); row.appendChild(input); row.appendChild(del); wrap.appendChild(row);
+    });
+  }
+
+  function setFieldValue(field, value, onInput) {
+    field.value = value || "";
+    field.addEventListener("input", function (e) { onInput(e.target.value); });
+    return field;
+  }
+
+  function renderWeek() {
+    var start = new Date(mondayKey() + "T12:00:00");
+    var end = new Date(start); end.setDate(start.getDate() + 6);
+    document.getElementById("week-label").textContent = start.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + "–" + end.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (!weekState.days) weekState.days = JSON.parse(JSON.stringify(WEEK_DEFAULTS));
+    var wrap = document.getElementById("week-days"); wrap.innerHTML = "";
+    weekState.days.forEach(function (day) {
+      var row = document.createElement("div"); row.className = "week-day";
+      var name = document.createElement("div"); name.className = "week-day-name"; name.textContent = day.day;
+      function group(label, value, key, type) {
+        var box = document.createElement("div");
+        var lab = document.createElement("label"); lab.textContent = label; box.appendChild(lab);
+        var field;
+        if (type === "select") {
+          field = document.createElement("select"); field.className = "field";
+          ["—", "Done", "Moved", "Rest day", "Plans changed"].forEach(function (opt) { var o = document.createElement("option"); o.textContent = opt; field.appendChild(o); });
+          field.value = value || "—";
+          field.addEventListener("change", function (e) { day[key] = e.target.value; saveWeek(); });
+        } else {
+          field = document.createElement("input"); field.className = "field"; field.type = "text";
+          setFieldValue(field, value, function (v) { day[key] = v; saveWeek(); });
+        }
+        box.appendChild(field); return box;
+      }
+      row.appendChild(name);
+      row.appendChild(group("Focus", day.focus, "focus"));
+      row.appendChild(group("Home / life", day.home, "home"));
+      var outcome = group("Outcome", day.outcome, "outcome", "select");
+      var note = document.createElement("input"); note.className = "field"; note.placeholder = "Optional note";
+      setFieldValue(note, day.note, function (v) { day.note = v; saveWeek(); }); outcome.appendChild(note);
+      row.appendChild(outcome); wrap.appendChild(row);
+    });
+  }
+
+  function renderWorkouts() {
+    if (!weekState.workouts) weekState.workouts = [{ date: "", activity: "", booked: false, done: false }, { date: "", activity: "", booked: false, done: false }];
+    var wrap = document.getElementById("workouts"); wrap.innerHTML = "";
+    weekState.workouts.forEach(function (workout, i) {
+      var card = document.createElement("div"); card.className = "workout-card";
+      var h = document.createElement("h3"); h.textContent = "Workout " + (i + 1); card.appendChild(h);
+      var fields = document.createElement("div"); fields.className = "workout-fields";
+      var date = document.createElement("input"); date.className = "field"; date.type = "date"; date.value = workout.date || "";
+      date.addEventListener("change", function (e) { workout.date = e.target.value; saveWeek(); });
+      var activity = document.createElement("input"); activity.className = "field"; activity.placeholder = "Class or activity";
+      setFieldValue(activity, workout.activity, function (v) { workout.activity = v; saveWeek(); });
+      fields.appendChild(date); fields.appendChild(activity); card.appendChild(fields);
+      var toggles = document.createElement("div"); toggles.className = "toggle-line";
+      ["booked", "done"].forEach(function (key) {
+        var label = document.createElement("label"); var box = document.createElement("input"); box.type = "checkbox"; box.checked = !!workout[key];
+        box.addEventListener("change", function (e) { workout[key] = e.target.checked; saveWeek(); renderWorkouts(); });
+        label.appendChild(box); label.appendChild(document.createTextNode(key === "booked" ? "Booked" : "Completed")); toggles.appendChild(label);
+      });
+      card.appendChild(toggles); wrap.appendChild(card);
+    });
+    var done = weekState.workouts.filter(function (w) { return w.done; }).length;
+    document.getElementById("workout-count").textContent = done + " of 2 complete";
+  }
+
+  function renderWeekChecklist() {
+    if (!weekState.checklist) weekState.checklist = [];
+    var wrap = document.getElementById("week-checklist"); wrap.innerHTML = "";
+    weekState.checklist.forEach(function (task) {
+      var row = document.createElement("div"); row.className = "task-row" + (task.done ? " done" : "");
+      row.style.gridTemplateColumns = "auto minmax(0, 1fr)";
+      var check = makeCheck(task.done, "Mark weekly item done", function () { task.done = !task.done; saveWeek(); renderWeekChecklist(); });
+      var text = document.createElement("div"); text.className = "task-text"; text.textContent = task.text;
+      row.appendChild(check); row.appendChild(text); wrap.appendChild(row);
+    });
+  }
+
+  function renderFoodPlan() {
+    if (!weekState.foodDays) weekState.foodDays = defaultFoodDays();
+    var wrap = document.getElementById("food-plan"); wrap.innerHTML = "";
+    weekState.foodDays.forEach(function (foodDay) {
+      if (!foodDay.choices) foodDay.choices = {};
+      var card = document.createElement("div"); card.className = "food-day";
+      var heading = document.createElement("h3"); heading.textContent = foodDay.day; card.appendChild(heading);
+      var grid = document.createElement("div"); grid.className = "food-choices";
+      foodItems.forEach(function (item) {
+        var row = document.createElement("div"); row.className = "food-choice";
+        var label = document.createElement("label"); label.textContent = item.label;
+        var select = document.createElement("select"); select.className = "field"; select.setAttribute("aria-label", foodDay.day + " " + item.label);
+        ["—", "Yes", "No"].forEach(function (value) { var option = document.createElement("option"); option.textContent = value; select.appendChild(option); });
+        select.value = foodDay.choices[item.key] || "—";
+        select.addEventListener("change", function (e) { foodDay.choices[item.key] = e.target.value; saveWeek(); });
+        row.appendChild(label); row.appendChild(select); grid.appendChild(row);
+      });
+      var dinnerRow = document.createElement("div"); dinnerRow.className = "food-choice";
+      var dinnerLabel = document.createElement("label"); dinnerLabel.textContent = "Dinner";
+      var dinner = document.createElement("select"); dinner.className = "field"; dinner.setAttribute("aria-label", foodDay.day + " dinner");
+      ["—", "Dinner at home", "Rep dinner", "Not sure", "Other"].forEach(function (value) { var option = document.createElement("option"); option.textContent = value; dinner.appendChild(option); });
+      dinner.value = foodDay.dinner || "—"; dinner.addEventListener("change", function (e) { foodDay.dinner = e.target.value; saveWeek(); });
+      dinnerRow.appendChild(dinnerLabel); dinnerRow.appendChild(dinner); grid.appendChild(dinnerRow);
+      card.appendChild(grid);
+      var note = document.createElement("input"); note.className = "field"; note.placeholder = "Optional note, packing time or macro change"; note.style.marginTop = "9px";
+      setFieldValue(note, foodDay.note, function (v) { foodDay.note = v; saveWeek(); }); card.appendChild(note);
+      wrap.appendChild(card);
+    });
+  }
+
+  function renderFoodItemsEditor() {
+    var wrap = document.getElementById("food-items-editor"); wrap.innerHTML = "";
+    foodItems.forEach(function (item, i) {
+      var row = document.createElement("div"); row.className = "task-row"; row.style.gridTemplateColumns = "minmax(0, 1fr) auto";
+      var input = document.createElement("input"); input.className = "task-text"; input.value = item.label; input.setAttribute("aria-label", "Packing item");
+      input.addEventListener("input", function (e) { item.label = e.target.value; saveFoodItems(); });
+      input.addEventListener("change", renderFoodPlan);
+      var del = document.createElement("button"); del.className = "remove-btn"; del.textContent = "✕"; del.setAttribute("aria-label", "Remove packing item");
+      del.addEventListener("click", function () { foodItems.splice(i, 1); saveFoodItems(); renderFoodItemsEditor(); renderFoodPlan(); });
+      row.appendChild(input); row.appendChild(del); wrap.appendChild(row);
+    });
+  }
+
+  function safeUrl(value) {
+    try { var u = new URL(value); return (u.protocol === "http:" || u.protocol === "https:") ? u.href : ""; }
+    catch (e) { return ""; }
+  }
+
+  function renderJobs() {
+    var wrap = document.getElementById("job-list"); wrap.innerHTML = "";
+    if (!jobLeads.length) { wrap.innerHTML = '<div class="empty-state">No leads parked yet. Empty is a valid state.</div>'; return; }
+    jobLeads.forEach(function (job, i) {
+      var card = document.createElement("div"); card.className = "entry";
+      var top = document.createElement("div"); top.className = "entry-top";
+      var title = document.createElement("div"); title.className = "entry-title"; title.textContent = job.role + (job.employer ? " — " + job.employer : "");
+      var del = document.createElement("button"); del.className = "remove-btn"; del.textContent = "✕"; del.setAttribute("aria-label", "Delete job lead");
+      del.addEventListener("click", function () { jobLeads.splice(i, 1); saveJobs(); renderJobs(); });
+      top.appendChild(title); top.appendChild(del); card.appendChild(top);
+      if (job.fit) { var fit = document.createElement("div"); fit.className = "entry-meta"; fit.textContent = job.fit; card.appendChild(fit); }
+      var url = safeUrl(job.link);
+      if (url) { var a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open job posting ↗"; card.appendChild(a); }
+      var actions = document.createElement("div"); actions.className = "entry-actions";
+      var status = document.createElement("select"); status.className = "field";
+      ["New", "Review next block", "Apply", "Save for later", "Pass"].forEach(function (v) { var o = document.createElement("option"); o.textContent = v; status.appendChild(o); });
+      status.value = job.status || "New"; status.addEventListener("change", function (e) { job.status = e.target.value; saveJobs(); });
+      actions.appendChild(status); card.appendChild(actions); wrap.appendChild(card);
+    });
+  }
+
+  function renderParking() {
+    var wrap = document.getElementById("parking-list"); wrap.innerHTML = "";
+    if (!parking.length) { wrap.innerHTML = '<div class="empty-state">Nothing parked. You do not need to invent work.</div>'; return; }
+    parking.forEach(function (item, i) {
+      var card = document.createElement("div"); card.className = "entry";
+      var top = document.createElement("div"); top.className = "entry-top";
+      var title = document.createElement("div"); title.className = "entry-title"; title.textContent = item.area + ": " + item.task;
+      var del = document.createElement("button"); del.className = "remove-btn"; del.textContent = "✕"; del.setAttribute("aria-label", "Delete parked item");
+      del.addEventListener("click", function () { parking.splice(i, 1); saveParking(); renderParking(); });
+      top.appendChild(title); top.appendChild(del); card.appendChild(top);
+      if (item.replace) { var meta = document.createElement("div"); meta.className = "entry-meta"; meta.textContent = "If scheduled, it replaces: " + item.replace; card.appendChild(meta); }
+      var status = document.createElement("select"); status.className = "field";
+      ["Inbox", "This week", "Later", "Done", "Drop"].forEach(function (v) { var o = document.createElement("option"); o.textContent = v; status.appendChild(o); });
+      status.value = item.status || "Inbox"; status.addEventListener("change", function (e) { item.status = e.target.value; saveParking(); }); card.appendChild(status); wrap.appendChild(card);
+    });
+  }
+
+  function renderAgreements() {
+    var wrap = document.getElementById("agreements"); wrap.innerHTML = "";
+    agreements.forEach(function (agreement, i) {
+      var card = document.createElement("div"); card.className = "agreement";
+      var top = document.createElement("div"); top.className = "entry-top";
+      var name = document.createElement("input"); name.className = "field entry-title"; name.setAttribute("aria-label", "Agreement name");
+      setFieldValue(name, agreement.system, function (v) { agreement.system = v; saveAgreements(); });
+      var del = document.createElement("button"); del.className = "remove-btn"; del.textContent = "✕"; del.setAttribute("aria-label", "Remove agreement");
+      del.addEventListener("click", function () { agreements.splice(i, 1); saveAgreements(); renderAgreements(); });
+      top.appendChild(name); top.appendChild(del); card.appendChild(top);
+      var grid = document.createElement("div"); grid.className = "agreement-grid";
+      [["Jackie", "jackie"], ["Denzil", "denzil"], ["Minimum / definition of done", "minimum"], ["Low-capacity version", "low"]].forEach(function (pair) {
+        var box = document.createElement("div"); var label = document.createElement("label"); label.className = "form-label"; label.textContent = pair[0];
+        var area = document.createElement("textarea"); area.className = "field"; setFieldValue(area, agreement[pair[1]], function (v) { agreement[pair[1]] = v; saveAgreements(); });
+        box.appendChild(label); box.appendChild(area); grid.appendChild(box);
+      });
+      card.appendChild(grid); wrap.appendChild(card);
+    });
+  }
+
+  function renderFoodLink() {
+    document.getElementById("food-sheet-url").value = foodSheetUrl || "";
+    document.getElementById("open-food-sheet").hidden = !safeUrl(foodSheetUrl);
+  }
+
+  function renderDailyNote() {
+    var note = document.getElementById("daily-note");
+    if (document.activeElement !== note) note.value = dayState.note || "";
+  }
+
+  function storedRecords(prefix) {
+    var found = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf(prefix) === 0) found[key] = JSON.parse(localStorage.getItem(key));
+      }
+    } catch (e) {}
+    Object.keys(mem).forEach(function (key) { if (key.indexOf(prefix) === 0) found[key] = mem[key]; });
+    return Object.keys(found).map(function (key) { return { key: key, value: found[key] }; });
+  }
+
+  function historyDateAllowed(dateKey) {
+    if (historyRange === "all") return true;
+    var selected = new Date(dateKey + "T12:00:00");
+    var today = new Date(todayKey() + "T12:00:00");
+    var age = Math.floor((today - selected) / 86400000);
+    return age >= 0 && age < parseInt(historyRange, 10);
+  }
+
+  function scheduleLabel(id, state) {
+    if (state.doneLabels && state.doneLabels[id]) return state.doneLabels[id];
+    for (var i = 0; i < blocks.length; i++) if (blockId(blocks[i], i) === id) return blocks[i].label;
+    return "Completed schedule item";
+  }
+
+  function nightLabel(id, state) {
+    if (state.nightLabels && state.nightLabels[id]) return state.nightLabels[id];
+    for (var i = 0; i < nightTasks.length; i++) if (nightTasks[i].id === id) return nightTasks[i].text;
+    return "Completed nightly item";
+  }
+
+  function dayWinCount(state) {
+    var count = 0;
+    (state.three || []).forEach(function (item) { if (item && item.done) count++; });
+    Object.keys(state.done || {}).forEach(function (key) { if (state.done[key]) count++; });
+    Object.keys(state.nightDone || {}).forEach(function (key) { if (state.nightDone[key]) count++; });
+    return count;
+  }
+
+  function appendHistorySection(card, titleText, items) {
+    if (!items.length) return;
+    var section = document.createElement("div"); section.className = "history-section";
+    var title = document.createElement("h3"); title.textContent = titleText; section.appendChild(title);
+    var list = document.createElement("ul"); list.className = "history-items";
+    items.forEach(function (item) {
+      var li = document.createElement("li"); if (item.done) li.className = "completed";
+      var mark = document.createElement("span"); mark.className = "mark"; mark.textContent = item.done ? "✓" : "○";
+      li.appendChild(mark); li.appendChild(document.createTextNode(item.text)); list.appendChild(li);
+    });
+    section.appendChild(list); card.appendChild(section);
+  }
+
+  function renderHistory() {
+    [].forEach.call(document.querySelectorAll(".range-tab"), function (tab) { tab.classList.toggle("active", tab.getAttribute("data-range") === historyRange); });
+    var records = storedRecords("anchor_day_").map(function (record) {
+      return { date: record.key.slice("anchor_day_".length), state: record.value || {} };
+    }).filter(function (record) { return /^\d{4}-\d{2}-\d{2}$/.test(record.date) && historyDateAllowed(record.date); })
+      .sort(function (a, b) { return b.date.localeCompare(a.date); });
+
+    var totalWins = records.reduce(function (sum, record) { return sum + dayWinCount(record.state); }, 0);
+    var activeDays = records.filter(function (record) { return dayWinCount(record.state) > 0 || (record.state.note || "").trim(); }).length;
+    var priorityWins = records.reduce(function (sum, record) {
+      return sum + (record.state.three || []).filter(function (item) { return item && item.done; }).length;
+    }, 0);
+    var stats = document.getElementById("history-stats"); stats.innerHTML = "";
+    [[activeDays, "active days"], [totalWins, "checks completed"], [priorityWins, "priority wins"]].forEach(function (stat) {
+      var box = document.createElement("div"); box.className = "history-stat";
+      var number = document.createElement("b"); number.textContent = stat[0]; var label = document.createElement("span"); label.textContent = stat[1];
+      box.appendChild(number); box.appendChild(label); stats.appendChild(box);
+    });
+    var wrap = document.getElementById("history-list"); wrap.innerHTML = "";
+    if (!records.length) { wrap.innerHTML = '<section class="card empty-state">No saved days in this range yet. Your history will build automatically as you use the planner.</section>'; return; }
+    records.forEach(function (record) {
+      var state = record.state;
+      var card = document.createElement("section"); card.className = "history-card";
+      var top = document.createElement("div"); top.className = "history-top";
+      var date = document.createElement("div"); date.className = "history-date";
+      date.textContent = new Date(record.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      var count = document.createElement("div"); count.className = "history-count"; var wins = dayWinCount(state); count.textContent = wins + (wins === 1 ? " check" : " checks");
+      top.appendChild(date); top.appendChild(count); card.appendChild(top);
+      if ((state.note || "").trim()) { var note = document.createElement("div"); note.className = "history-note"; note.textContent = state.note; card.appendChild(note); }
+      var priorities = (state.three || []).filter(function (item) { return item && (item.text || "").trim(); }).map(function (item) { return { text: item.text, done: !!item.done }; });
+      appendHistorySection(card, "Today's 3", priorities);
+      var completed = [];
+      Object.keys(state.done || {}).forEach(function (key) { if (state.done[key]) completed.push({ text: scheduleLabel(key, state), done: true }); });
+      Object.keys(state.nightDone || {}).forEach(function (key) { if (state.nightDone[key]) completed.push({ text: nightLabel(key, state), done: true }); });
+      appendHistorySection(card, "Other completed items", completed);
+      wrap.appendChild(card);
+    });
+  }
+
+  function renderAll() {
+    renderDate(); renderClock(); renderNow(); renderBlocks(); renderThree(); renderNightly(); renderDump(); renderWins(); renderDailyNote();
+    renderWeek(); renderWorkouts(); renderWeekChecklist(); renderFoodPlan(); renderFoodItemsEditor(); renderJobs(); renderParking(); renderAgreements(); renderFoodLink();
+    renderHistory();
+  }
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+  /* ---------- schedule edit controls ---------- */
+  document.getElementById("edit-toggle").addEventListener("click", function () {
+    editing = !editing;
+    this.textContent = editing ? "Done editing" : "Edit schedule";
+    this.classList.toggle("primary", editing);
+    document.getElementById("add-block").hidden = !editing;
+    document.getElementById("restore-default").hidden = !editing;
+    renderBlocks();
+  });
+  document.getElementById("add-block").addEventListener("click", function () {
+    var last = blocks.length ? blocks[blocks.length - 1].t : "08:00";
+    var nm = Math.min(23 * 60 + 59, mins(last) + 60);
+    blocks.push({ t: String(Math.floor(nm / 60)).padStart(2, "0") + ":" + String(nm % 60).padStart(2, "0"), label: "New block" });
+    saveBlocks(); renderBlocks();
+  });
+  document.getElementById("restore-default").addEventListener("click", function () {
+    blocks = DEFAULT_BLOCKS.slice(); saveBlocks(); renderAll();
+  });
+
+  /* ---------- brain dump ---------- */
+  document.getElementById("dump-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var inp = document.getElementById("dump-input");
+    var v = inp.value.trim();
+    if (v) { dump.unshift(v); saveDump(); renderDump(); inp.value = ""; }
+  });
+
+  /* ---------- views and editable lists ---------- */
+  function showView(name) {
+    ["today", "week", "lists", "household", "history"].forEach(function (view) {
+      document.getElementById("view-" + view).hidden = view !== name;
+    });
+    [].forEach.call(document.querySelectorAll(".view-tab"), function (tab) {
+      tab.classList.toggle("active", tab.getAttribute("data-view") === name);
+    });
+    save("anchor_view", name);
+    if (name === "history") renderHistory();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.querySelector(".view-nav").addEventListener("click", function (e) {
+    var tab = e.target.closest(".view-tab"); if (tab) showView(tab.getAttribute("data-view"));
+  });
+
+  document.getElementById("daily-note").addEventListener("input", function (e) {
+    dayState.note = e.target.value; saveDay();
+  });
+  document.getElementById("history-ranges").addEventListener("click", function (e) {
+    var tab = e.target.closest(".range-tab"); if (!tab) return;
+    historyRange = tab.getAttribute("data-range"); save("anchor_history_range", historyRange); renderHistory();
+  });
+
+  document.getElementById("add-night-task").addEventListener("click", function () {
+    nightTasks.push({ id: "night-" + Date.now().toString(36), text: "New nightly item" }); saveNight(); renderNightly();
+  });
+  document.getElementById("add-food-item").addEventListener("click", function () {
+    foodItems.push({ key: "food-" + Date.now().toString(36), label: "New packing item" }); saveFoodItems(); renderFoodItemsEditor(); renderFoodPlan();
+  });
+
+  document.getElementById("job-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    jobLeads.unshift({
+      role: document.getElementById("job-role").value.trim(),
+      employer: document.getElementById("job-employer").value.trim(),
+      link: document.getElementById("job-link").value.trim(),
+      fit: document.getElementById("job-fit").value.trim(),
+      status: "New"
+    });
+    saveJobs(); this.reset(); renderJobs();
+  });
+
+  document.getElementById("parking-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    parking.unshift({
+      area: document.getElementById("parking-area").value,
+      task: document.getElementById("parking-task").value.trim(),
+      replace: document.getElementById("parking-replace").value.trim(),
+      status: "Inbox"
+    });
+    saveParking(); this.reset(); renderParking();
+  });
+
+  document.getElementById("add-agreement").addEventListener("click", function () {
+    agreements.push({ system: "New agreement", jackie: "", denzil: "", minimum: "", low: "" }); saveAgreements(); renderAgreements();
+  });
+
+  document.getElementById("save-food-link").addEventListener("click", function () {
+    var value = document.getElementById("food-sheet-url").value.trim();
+    if (value && !safeUrl(value)) { alert("Please paste a full http or https link."); return; }
+    foodSheetUrl = value; save("anchor_food_sheet_url", foodSheetUrl); renderFoodLink();
+    this.textContent = "Saved ✓"; var btn = this; setTimeout(function () { btn.textContent = "Save"; }, 1400);
+  });
+  document.getElementById("open-food-sheet").addEventListener("click", function () {
+    var url = safeUrl(foodSheetUrl); if (url) window.open(url, "_blank", "noopener");
+  });
+
+  document.getElementById("export-data").addEventListener("click", function () {
+    var data = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i); if (key && key.indexOf("anchor_") === 0) data[key] = JSON.parse(localStorage.getItem(key));
+      }
+    } catch (e) {
+      Object.keys(mem).forEach(function (key) { if (key.indexOf("anchor_") === 0) data[key] = mem[key]; });
+    }
+    var blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), data: data }, null, 2)], { type: "application/json" });
+    var link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "anchor-day-backup-" + todayKey() + ".json";
+    document.body.appendChild(link); link.click(); link.remove(); setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+  });
+
+  document.getElementById("import-data").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0]; if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var parsed = JSON.parse(reader.result); var data = parsed.data || parsed;
+        if (!data || typeof data !== "object") throw new Error("No planner data found");
+        if (!confirm("Replace this browser's Anchor Day data with the backup?")) return;
+        Object.keys(data).forEach(function (key) { if (key.indexOf("anchor_") === 0) save(key, data[key]); });
+        location.reload();
+      } catch (err) { alert("That file does not look like an Anchor Day backup."); }
+    };
+    reader.readAsText(file); e.target.value = "";
+  });
+
+  /* ---------- jump back in ---------- */
+  document.getElementById("start-now").addEventListener("click", function () {
+    var card = document.querySelector(".now-card");
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.animate([{ transform: "scale(1)" }, { transform: "scale(1.02)" }, { transform: "scale(1)" }], { duration: 500 });
+  });
+
+  /* ---------- focus timer ---------- */
+  var tMin = 25, tLeft = 25 * 60, tRunning = false, tInt = null;
+  function fmtTimer(s) { var m = Math.floor(s / 60), ss = s % 60; return String(m).padStart(2, "0") + ":" + String(ss).padStart(2, "0"); }
+  function renderTimer() {
+    var el = document.getElementById("timer-time");
+    el.textContent = fmtTimer(tLeft);
+    el.classList.toggle("running", tRunning);
+    document.getElementById("timer-toggle").textContent = tRunning ? "Pause" : (tLeft < tMin * 60 ? "Resume" : "Start");
+  }
+  function tick() {
+    if (tLeft > 0) { tLeft--; renderTimer(); }
+    if (tLeft <= 0) { stopTimer(); chime(); flashDone(); }
+  }
+  function startTimer() { if (tRunning) return; tRunning = true; tInt = setInterval(tick, 1000); renderTimer(); }
+  function stopTimer() { tRunning = false; if (tInt) clearInterval(tInt); tInt = null; renderTimer(); }
+  function resetTimer() { stopTimer(); tLeft = tMin * 60; renderTimer(); }
+  function flashDone() {
+    var el = document.getElementById("timer-time");
+    el.textContent = "Done!";
+    setTimeout(function () { tLeft = tMin * 60; renderTimer(); }, 2600);
+  }
+  function chime() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      var ac = new AC();
+      [0, .18, .36].forEach(function (d, i) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = "sine"; o.frequency.value = [523, 659, 784][i];
+        o.connect(g); g.connect(ac.destination);
+        g.gain.setValueAtTime(0, ac.currentTime + d);
+        g.gain.linearRampToValueAtTime(.18, ac.currentTime + d + .02);
+        g.gain.exponentialRampToValueAtTime(.001, ac.currentTime + d + .4);
+        o.start(ac.currentTime + d); o.stop(ac.currentTime + d + .42);
+      });
+    } catch (e) {}
+  }
+  document.getElementById("timer-toggle").addEventListener("click", function () { if (tRunning) stopTimer(); else startTimer(); });
+  document.getElementById("timer-reset").addEventListener("click", resetTimer);
+  document.getElementById("presets").addEventListener("click", function (e) {
+    var b = e.target.closest(".preset"); if (!b) return;
+    tMin = parseInt(b.getAttribute("data-min"), 10);
+    [].forEach.call(this.querySelectorAll(".preset"), function (p) { p.classList.toggle("active", p === b); });
+    resetTimer();
+  });
+  renderTimer();
+
+  /* ---------- theme toggle ---------- */
+  (function () {
+    var saved = load("anchor_theme", null);
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
+    document.getElementById("theme").addEventListener("click", function () {
+      var cur = document.documentElement.getAttribute("data-theme");
+      var isDark = cur ? cur === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var next = isDark ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      save("anchor_theme", next);
+    });
+  })();
+
+  /* ---------- boot + live updates ---------- */
+  saveDay();
+  renderAll();
+  var savedView = load("anchor_view", "today");
+  showView(["today", "week", "lists", "household", "history"].indexOf(savedView) >= 0 ? savedView : "today");
+  setInterval(function () { if (!checkDayRollover()) { renderClock(); renderNow(); renderBlocks(); } }, 15000);
+
+})();
+</script>
+</body>
+</html>
